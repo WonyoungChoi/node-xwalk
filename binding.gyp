@@ -8,8 +8,7 @@
         "src/extension_adapter.cc"
       ],
       "include_dirs": [
-        "src",
-        "src/xwalk_public"
+        "src"
       ]
     }
   ]

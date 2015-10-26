@@ -8,11 +8,11 @@
 
 #include <map>
 
-#include "XW_Extension.h"
-#include "XW_Extension_SyncMessage.h"
-#include "XW_Extension_EntryPoints.h"
-#include "XW_Extension_Runtime.h"
-#include "XW_Extension_Permissions.h"
+#include "xwalk/extensions/public/XW_Extension.h"
+#include "xwalk/extensions/public/XW_Extension_SyncMessage.h"
+#include "xwalk/extensions/public/XW_Extension_EntryPoints.h"
+#include "xwalk/extensions/public/XW_Extension_Runtime.h"
+#include "xwalk/extensions/public/XW_Extension_Permissions.h"
 
 #include "extension.h"
 

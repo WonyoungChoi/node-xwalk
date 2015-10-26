@@ -10,8 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "XW_Extension.h"
-#include "XW_Extension_SyncMessage.h"
+#include "xwalk/extensions/public/XW_Extension.h"
+#include "xwalk/extensions/public/XW_Extension_SyncMessage.h"
 
 namespace xwalk {
 namespace extensions {
