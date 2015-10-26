@@ -40,3 +40,7 @@ $ make
 $ node echo_sample.js
 ```
 
+## License
+
+**node-xwalk** is available under the BSD licenses, see our `LICENSE` file.
+
