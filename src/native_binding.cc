@@ -102,26 +102,12 @@ void NativeBinding::CreateInstance(
     return;
   }
 
-  auto post_cb = [](const std::string& msg, int instance_id) {
-    v8::Isolate* isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope scope(isolate);
-    v8::Local<v8::Value> args[] = {
-        v8::Local<v8::Value>::New(
-            isolate,
-            v8::String::NewFromUtf8(isolate, msg.c_str()))
-        };
-    auto listener = g_listeners.find(instance_id);
-    if (listener == g_listeners.end()) {
-      LOGW("Can't find callback. instance_id=%d", instance_id);
-      return;
-    }
-    v8::Local<v8::Function> func =
-        v8::Local<v8::Function>::New(isolate, listener->second);
-    func->Call(v8::Null(isolate), 1, args);
-  };
   using std::placeholders::_1;
+  using std::placeholders::_2;
+  using std::placeholders::_3;
   instance->set_post_message_listener(
-      std::bind(post_cb, _1, instance->xw_instance()));
+      std::bind(NativeBinding::PostMessageToJSCallback,
+                _1, _2, _3, instance->xw_instance()));
 
   result.Set(v8::Integer::New(isolate, instance->xw_instance()));
 }
@@ -154,8 +140,18 @@ void NativeBinding::PostMessage(
     return;
   }
 
-  v8::String::Utf8Value msg(args[1]->ToString());
-  instance->HandleMessage(std::string(*msg));
+  if (args[1]->IsString()) {
+    v8::String::Utf8Value msg(args[1]->ToString());
+    instance->HandleMessage(std::string(*msg));
+  } else if (args[1]->IsArrayBuffer()) {
+    v8::Handle<v8::ArrayBuffer> buffer =
+        v8::Handle<v8::ArrayBuffer>::Cast(args[1]);
+    v8::ArrayBuffer::Contents contents = buffer->Externalize();
+    void* ptr = contents.Data();
+    instance->HandleMessage(static_cast<char*>(ptr),
+                            contents.ByteLength());
+    std::free(ptr);
+  }
 }
 
 // static
@@ -179,14 +175,18 @@ void NativeBinding::SendSyncMessage(
     return;
   }
 
-  auto sync_cb = [](const std::string& reply,
+  auto sync_cb = [](const char* reply, const size_t /*size*/,
+                    const bool /*binary*/,
                     const v8::FunctionCallbackInfo<v8::Value>& args) {
     v8::Isolate* isolate = args.GetIsolate();
     v8::ReturnValue<v8::Value> result(args.GetReturnValue());
-    result.Set(v8::String::NewFromUtf8(isolate, reply.c_str()));
+    result.Set(v8::String::NewFromUtf8(isolate, reply));
   };
   using std::placeholders::_1;
-  instance->set_send_sync_message_listener(std::bind(sync_cb, _1, args));
+  using std::placeholders::_2;
+  using std::placeholders::_3;
+  instance->set_send_sync_message_listener(
+      std::bind(sync_cb, _1, _2, _3, args));
   v8::String::Utf8Value msg(args[1]->ToString());
   instance->HandleSyncMessage(std::string(*msg));
 }
@@ -226,6 +226,31 @@ void NativeBinding::SetRuntimeVariable(
   g_runtime_variables[std::string(*key)] = std::string(*value);
 
   result.Set(v8::Boolean::New(isolate, true));
+}
+
+// static
+// TODO(WonyoungChoi): Make this function thread-safety.
+void NativeBinding::PostMessageToJSCallback(
+    const char* msg, const size_t size, const bool binary, int instance_id) {
+  auto listener = g_listeners.find(instance_id);
+  if (listener == g_listeners.end()) {
+    LOGW("Can't find callback. instance_id=%d", instance_id);
+    return;
+  }
+
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
+  v8::HandleScope scope(isolate);
+  v8::Local<v8::Value> args[1];
+
+  if (binary) {
+    args[0] = v8::ArrayBuffer::New(isolate, (void*)(msg), size);
+  } else {
+    args[0] = v8::String::NewFromUtf8(isolate, msg);
+  }
+
+  v8::Local<v8::Function> func =
+      v8::Local<v8::Function>::New(isolate, listener->second);
+  func->Call(v8::Null(isolate), 1, args);
 }
 
 }  // namespace extensions

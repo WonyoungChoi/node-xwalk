@@ -1,3 +1,4 @@
+// Copyright (c) 2013 Intel Corporation. All rights reserved.
 // Copyright (c) 2015 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -11,6 +12,7 @@
 #include <vector>
 
 #include "xwalk/extensions/public/XW_Extension.h"
+#include "xwalk/extensions/public/XW_Extension_Message_2.h"
 #include "xwalk/extensions/public/XW_Extension_SyncMessage.h"
 
 namespace xwalk {
@@ -80,16 +82,20 @@ class Extension {
   XW_ShutdownCallback shutdown_callback_;
   XW_HandleMessageCallback handle_msg_callback_;
   XW_HandleSyncMessageCallback handle_sync_msg_callback_;
+  XW_HandleBinaryMessageCallback handle_binary_msg_callback_;
 };
 
 class ExtensionInstance {
  public:
-  typedef std::function<void(const std::string&)> MessageCallback;
+  typedef std::function<void(
+      const char* msg, const size_t size, const bool binary)>
+      MessageCallback;
 
   ExtensionInstance(Extension* extension, XW_Instance xw_instance);
   virtual ~ExtensionInstance();
 
   void HandleMessage(const std::string& msg);
+  void HandleMessage(const char* msg, const size_t size);
   void HandleSyncMessage(const std::string& msg);
 
   XW_Instance xw_instance() const {
@@ -108,6 +114,7 @@ class ExtensionInstance {
   friend class ExtensionAdapter;
 
   void PostMessageToJS(const std::string& msg);
+  void PostMessageToJS(const char* msg, size_t size);
   void SyncReplyToJS(const std::string& reply);
 
   Extension* extension_;

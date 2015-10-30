@@ -30,6 +30,10 @@ class NativeBinding {
       const v8::FunctionCallbackInfo<v8::Value>& args);
   static void SetRuntimeVariable(
       const v8::FunctionCallbackInfo<v8::Value>& args);
+
+  static void PostMessageToJSCallback(
+      const char* msg, const size_t size, const bool binary,
+      int instance_id);
 };
 
 }  // namespace extensions

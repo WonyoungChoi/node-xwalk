@@ -1,3 +1,4 @@
+// Copyright (c) 2013 Intel Corporation. All rights reserved.
 // Copyright (c) 2015 Samsung Electronics Co., Ltd. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
@@ -21,7 +22,8 @@ Extension::Extension(const std::string& path)
     destroyed_instance_callback_(NULL),
     shutdown_callback_(NULL),
     handle_msg_callback_(NULL),
-    handle_sync_msg_callback_(NULL) {
+    handle_sync_msg_callback_(NULL),
+    handle_binary_msg_callback_(NULL) {
 }
 
 Extension::~Extension() {
@@ -123,6 +125,13 @@ void ExtensionInstance::HandleMessage(const std::string& msg) {
     callback(xw_instance_, msg.c_str());
 }
 
+void ExtensionInstance::HandleMessage(const char* msg, const size_t size) {
+  XW_HandleBinaryMessageCallback callback =
+      extension_->handle_binary_msg_callback_;
+  if (callback)
+    callback(xw_instance_, msg, size);
+}
+
 void ExtensionInstance::HandleSyncMessage(const std::string& msg) {
   XW_HandleSyncMessageCallback callback =
       extension_->handle_sync_msg_callback_;
@@ -133,13 +142,19 @@ void ExtensionInstance::HandleSyncMessage(const std::string& msg) {
 
 void ExtensionInstance::PostMessageToJS(const std::string& msg) {
   if (post_message_callback_) {
-    post_message_callback_(msg);
+    post_message_callback_(msg.c_str(), 0, false);
+  }
+}
+
+void ExtensionInstance::PostMessageToJS(const char* msg, size_t size) {
+  if (post_message_callback_) {
+    post_message_callback_(msg, size, true);
   }
 }
 
 void ExtensionInstance::SyncReplyToJS(const std::string& reply) {
   if (send_sync_reply_callback_) {
-    send_sync_reply_callback_(reply);
+    send_sync_reply_callback_(reply.c_str(), 0, false);
   }
 }
 

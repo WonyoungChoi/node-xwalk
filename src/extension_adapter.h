@@ -9,6 +9,7 @@
 #include <map>
 
 #include "xwalk/extensions/public/XW_Extension.h"
+#include "xwalk/extensions/public/XW_Extension_Message_2.h"
 #include "xwalk/extensions/public/XW_Extension_SyncMessage.h"
 #include "xwalk/extensions/public/XW_Extension_EntryPoints.h"
 #include "xwalk/extensions/public/XW_Extension_Runtime.h"
@@ -43,6 +44,7 @@ class ExtensionAdapter {
   ExtensionAdapter();
   virtual ~ExtensionAdapter();
 
+  // Core Interface
   static void CoreSetExtensionName(
       XW_Extension xw_extension, const char* name);
   static void CoreSetJavaScriptAPI(
@@ -56,20 +58,29 @@ class ExtensionAdapter {
   static void CoreSetInstanceData(
       XW_Instance xw_instance, void* data);
   static void* CoreGetInstanceData(XW_Instance xw_instance);
+  // Messaging Interface
   static void MessagingRegister(
       XW_Extension xw_extension, XW_HandleMessageCallback handle_message);
   static void MessagingPostMessage(
       XW_Instance xw_instance, const char* message);
+  static void MessagingRegisterBinaryMessageCallback(
+      XW_Extension extension, XW_HandleBinaryMessageCallback handle_message);
+  static void MessagingPostBinaryMessage(
+      XW_Instance instance, const char* message, size_t size);
+  // SyncMessage Interface
   static void SyncMessagingRegister(
       XW_Extension xw_extension,
       XW_HandleSyncMessageCallback handle_sync_message);
   static void SyncMessagingSetSyncReply(
       XW_Instance xw_instance, const char* reply);
+  // EntryPoints Interface
   static void EntryPointsSetExtraJSEntryPoints(
       XW_Extension xw_extension, const char** entry_points);
+  // Runtime Interface
   static void RuntimeGetStringVariable(
       XW_Extension xw_extension,
       const char* key, char* value, unsigned int value_len);
+  // Permission Interface
   static int PermissionsCheckAPIAccessControl(
       XW_Extension xw_extension, const char* api_name);
   static int PermissionsRegisterPermissions(

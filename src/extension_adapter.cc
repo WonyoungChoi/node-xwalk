@@ -96,6 +96,16 @@ const void* ExtensionAdapter::GetInterface(const char* name) {
     return &messagingInterface1;
   }
 
+  if (!strcmp(name, XW_MESSAGING_INTERFACE_2)) {
+    static const XW_MessagingInterface_2 messagingInterface2 = {
+      MessagingRegister,
+      MessagingPostMessage,
+      MessagingRegisterBinaryMessageCallback,
+      MessagingPostBinaryMessage
+    };
+    return &messagingInterface2;
+  }
+
   if (!strcmp(name, XW_INTERNAL_SYNC_MESSAGING_INTERFACE_1)) {
     static const XW_Internal_SyncMessagingInterface_1
         syncMessagingInterface1 = {
@@ -220,6 +230,21 @@ void ExtensionAdapter::MessagingPostMessage(XW_Instance xw_instance,
   ExtensionInstance* instance = GetExtensionInstance(xw_instance);
   CHECK(instance, xw_instance);
   instance->PostMessageToJS(message);
+}
+
+void ExtensionAdapter::MessagingRegisterBinaryMessageCallback(
+    XW_Extension xw_extension, XW_HandleBinaryMessageCallback handle_message) {
+  Extension* extension = GetExtension(xw_extension);
+  CHECK(extension, xw_extension);
+  RETURN_IF_INITIALIZED(extension);
+  extension->handle_binary_msg_callback_ = handle_message;
+}
+
+void ExtensionAdapter::MessagingPostBinaryMessage(
+    XW_Instance xw_instance, const char* message, size_t size) {
+  ExtensionInstance* instance = GetExtensionInstance(xw_instance);
+  CHECK(instance, xw_instance);
+  instance->PostMessageToJS(message, size);
 }
 
 void ExtensionAdapter::SyncMessagingRegister(XW_Extension xw_extension,
