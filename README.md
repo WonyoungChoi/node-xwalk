@@ -32,12 +32,12 @@ From your project directory, run
 $ npm install https://github.com/WonyoungChoi/node-xwalk
 ```
 This will download and build node-xwalk in ```./node_modules/```. 
-Then copy the sample files from [sample/](https://github.com/WonyoungChoi/node-xwalk/tree/master/sample) directory in this project.
+Then copy the example files from [examples/](https://github.com/WonyoungChoi/node-xwalk/tree/master/examples) directory in this project.
 
-Build and test a crosswalk extension *'echo sample'* with Makefile.
+Build and test a crosswalk extension *'echo example'* with Makefile.
 ```
 $ make
-$ node echo_sample.js
+$ node echo.js
 ```
 
 ## License
